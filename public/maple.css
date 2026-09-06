@@ -1,0 +1,71 @@
+/* Pocket Maple 專屬樣式（疊在共用 style.css 之上） */
+h2.step { display: flex; align-items: center; gap: .6rem; font-size: 1.05rem; margin: 1.4rem 0 .6rem; }
+h2.step:first-child { margin-top: 0; }
+h2.step .num { display: inline-flex; width: 1.5rem; height: 1.5rem; border-radius: 50%; background: var(--accent); color: var(--accent-ink); font-size: .85rem; align-items: center; justify-content: center; }
+.seg { display: inline-flex; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; margin: .2rem 0 .8rem; flex-wrap: wrap; }
+.seg button { border: 0; background: var(--card); color: var(--ink); padding: .45rem .9rem; font: inherit; cursor: pointer; }
+.seg button + button { border-left: 1px solid var(--line); }
+.seg button[aria-selected="true"] { background: var(--accent); color: var(--accent-ink); }
+.searchrow { display: flex; gap: .5rem; align-items: stretch; }
+.searchrow input { flex: 1; min-width: 0; }
+.status { margin: .35rem 0; }
+.hits { margin: .3rem 0; }
+.hits-head { display: flex; justify-content: space-between; align-items: baseline; gap: .6rem; margin: .8rem 0 .2rem; font-weight: 600; flex-wrap: wrap; }
+.mini { font-weight: 400; font-size: .85rem; color: var(--muted); display: flex; align-items: center; gap: .3rem; margin: 0; }
+.hit { display: block; width: 100%; text-align: left; border: 1px solid var(--line); border-radius: 6px; padding: .5rem .7rem; margin: .35rem 0; cursor: pointer; background: var(--card); color: var(--ink); font: inherit; }
+.hit:hover, .hit:focus-visible { border-color: var(--accent); background: var(--soft); outline: none; }
+.hit.picked { border-color: var(--accent); background: var(--soft); }
+.hit .name { font-weight: 600; }
+.hit .meta { font-size: .82rem; color: var(--muted); display: flex; gap: .5rem; flex-wrap: wrap; align-items: center; margin-top: .1rem; }
+.badge { display: inline-block; font-size: .72rem; padding: .05rem .45rem; border-radius: 999px; border: 1px solid var(--line); color: var(--muted); }
+.badge.open { border-color: var(--accent); color: var(--accent); }
+.badge.done { opacity: .8; }
+.picked { border: 2px solid var(--accent); border-radius: 8px; padding: .8rem 1rem; margin: .6rem 0 .2rem; background: var(--soft); }
+.picked-head { display: flex; justify-content: space-between; align-items: center; gap: .6rem; margin-bottom: .3rem; }
+.tag.ok { display: inline-block; font-size: .75rem; padding: .05rem .5rem; border-radius: 999px; background: var(--accent); color: var(--accent-ink); }
+.linkbtn { background: none; border: 0; color: var(--accent); font: inherit; cursor: pointer; text-decoration: underline; padding: 0; }
+.checks { display: flex; flex-direction: column; justify-content: flex-end; }
+.checks .consent { margin: .3rem 0; }
+
+/* 議程卡（留言頁、檔案頁、建立頁共用） */
+.agenda { border-left: 3px solid var(--accent); padding: .3rem .9rem .5rem; margin: .8rem 0 1.2rem; }
+.agenda .name { font-weight: 700; }
+.agenda .meta { display: flex; flex-wrap: wrap; gap: .3rem .8rem; font-size: .88rem; color: var(--muted); margin: .2rem 0; align-items: center; }
+.agenda details { margin: .3rem 0; }
+.agenda summary { cursor: pointer; color: var(--accent); font-size: .9rem; }
+.agenda .reason { white-space: pre-wrap; font-size: .95rem; margin: .4rem 0 0; }
+.agenda ol { margin: .3rem 0 0 1.1rem; padding: 0; font-size: .88rem; color: var(--muted); }
+.agenda a { font-size: .88rem; }
+
+/* 留言表單 */
+.stances { display: flex; gap: .5rem; flex-wrap: wrap; margin: .3rem 0 .2rem; }
+.stances label { display: flex; align-items: center; gap: .4rem; border: 1px solid var(--line); border-radius: 6px; padding: .45rem .9rem; cursor: pointer; margin: 0; font-weight: 600; }
+.stances label:has(input:checked) { border-color: var(--accent); background: var(--soft); }
+.stances label.support:has(input:checked) { border-color: var(--accent); }
+.stances label.oppose:has(input:checked) { border-color: var(--bad); background: var(--warn-bg); }
+.stances label.amend:has(input:checked) { border-color: var(--fair); background: var(--fair-soft); }
+.req::after { content: " *"; color: var(--bad); }
+.counter { font-size: .8rem; color: var(--muted); text-align: right; margin-top: .15rem; }
+.done-card { border: 2px solid var(--accent); border-radius: 8px; padding: .9rem 1rem; margin: 1rem 0; background: var(--soft); }
+.done-card h2 { margin: 0 0 .3rem; font-size: 1.1rem; }
+
+/* 檔案頁 */
+.stance-bar { display: flex; height: .8rem; border-radius: 4px; overflow: hidden; background: var(--line); margin: .4rem 0 .8rem; }
+.stance-bar i { display: block; height: 100%; }
+.stance-bar .support { background: var(--accent); }
+.stance-bar .oppose { background: var(--bad); }
+.stance-bar .amend { background: var(--fair); }
+.filters { display: flex; gap: .4rem; flex-wrap: wrap; margin: .6rem 0; align-items: center; }
+.filters .seg button[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink); }
+.testimony { border-top: 1px solid var(--line); padding: 1rem 0; }
+.testimony .head { display: flex; gap: .6rem; align-items: baseline; flex-wrap: wrap; }
+.testimony .who { font-weight: 700; }
+.testimony .meta { font-size: .8rem; color: var(--muted); }
+.testimony .summary { font-weight: 600; margin: .3rem 0; font-size: 1.02rem; }
+.testimony .text { white-space: pre-wrap; margin: .3rem 0; }
+.testimony .more { font-size: .88rem; }
+.tag { display: inline-block; font-size: .75rem; padding: .05rem .45rem; border-radius: 3px; color: #fff; }
+.tag.support { background: var(--accent); }
+.tag.oppose { background: var(--bad); }
+.tag.amend { background: var(--fair); }
+.cta-top { margin: .4rem 0 0; }

@@ -13,6 +13,17 @@ export class LyError extends Error {
   }
 }
 
+/** 「核子反應器設施管制法第六條條文修正草案」，請審議案。 → 核子反應器設施管制法第六條條文修正草案 */
+export function cleanBillName(value: string): string {
+  return value
+    .replace(/[，,]\s*請審議案[。.]?\s*$/, "")
+    .replace(/^本院委員[^「]{0,40}擬具/, "")
+    .replace(/^「(.+)」$/, "$1")
+    .replace(/^「/, "")
+    .replace(/」$/, "")
+    .trim();
+}
+
 export function isBillNo(value: string): boolean {
   return /^\d{15}$/.test(value);
 }
@@ -66,7 +77,7 @@ function toBillHit(bill: Record<string, unknown>): BillHit {
   const unit = cleanLine(bill["提案單位/提案委員"], 120);
   return {
     billNo: String(bill.議案編號 ?? ""),
-    name: cleanLine(bill.議案名稱, 300),
+    name: cleanBillName(cleanLine(bill.議案名稱, 300)),
     proposer: proposers.length > 0 ? `${proposers.slice(0, 3).join("、")}${proposers.length > 3 ? ` 等 ${proposers.length} 人` : ""}` : unit,
     status: cleanLine(bill.議案狀態, 40),
     date: cleanLine(bill.最新進度日期, 20),

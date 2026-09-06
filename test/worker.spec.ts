@@ -1,6 +1,6 @@
 import { SELF } from "cloudflare:test";
 import { describe, expect, it } from "vitest";
-import { billsForLaw, extractBillNo, fetchBill, searchLaws } from "../src/ly";
+import { billsForLaw, cleanBillName, extractBillNo, fetchBill, searchLaws } from "../src/ly";
 
 const uuid = (seed: string) => `${seed.padEnd(8, "0").slice(0, 8)}-0000-4000-8000-000000000000`;
 const BILL = {
@@ -24,6 +24,8 @@ describe("ly client", () => {
     expect(extractBillNo("https://ppg.ly.gov.tw/ppg/bills/202110231310000/details")).toBe("202110231310000");
     expect(extractBillNo(" 202110231310000 ")).toBe("202110231310000");
     expect(extractBillNo("abc")).toBe("");
+    expect(cleanBillName("「核子反應器設施管制法第六條條文修正草案」，請審議案。")).toBe("核子反應器設施管制法第六條條文修正草案");
+    expect(cleanBillName("報告併案審查委員王鴻薇等19人擬具「核子反應器設施管制法第六條條文修正草案」案。")).toBe("報告併案審查委員王鴻薇等19人擬具「核子反應器設施管制法第六條條文修正草案」案。");
   });
 
   it("searches laws, lists a law's bills in the current term and snapshots one bill, all token-free", async () => {
@@ -37,7 +39,7 @@ describe("ly client", () => {
     expect(await searchLaws("https://ly.test", "核子", upstream)).toEqual([{ code: "02711", name: "核子反應器設施管制法", aliases: ["核管法"], status: "現行", latest: "2025-05-13" }]);
     expect((await searchLaws("https://ly.test", "核管法", upstream)).map((law) => law.code)).toEqual(["02711"]);
     const bills = await billsForLaw("https://ly.test", "02711", upstream);
-    expect(bills[0]).toMatchObject({ billNo: "202110231310000", proposer: "陳菁徽、王育敏、李彥秀 等 4 人", status: "排入院會", laws: ["核子反應器設施管制法"] });
+    expect(bills[0]).toMatchObject({ billNo: "202110231310000", name: "核子反應器設施管制法第六條條文修正草案", proposer: "陳菁徽、王育敏、李彥秀 等 4 人", status: "排入院會", laws: ["核子反應器設施管制法"] });
     await expect(billsForLaw("https://ly.test", "12", upstream)).rejects.toThrow(/5 碼/);
     const agenda = await fetchBill("https://ly.test", "202110231310000", upstream);
     expect(agenda).toMatchObject({ kind: "bill", billNo: "202110231310000", status: "排入院會", reason: "為使核能電廠得於安全審查通過後延長運轉，爰擬具本修正草案。", url: "https://ppg.ly.gov.tw/ppg/bills/202110231310000/details" });

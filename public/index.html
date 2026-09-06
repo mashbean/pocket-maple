@@ -6,73 +6,87 @@
   <title>Pocket Maple 口袋公聽</title>
   <meta name="description" content="對一個法案或公聽案留下立場與書面證詞，公開存檔。法案資料直接從立法院 API 帶入，免 token；單一 Cloudflare Worker，免帳號。" />
   <link rel="stylesheet" href="/style.css" />
-  <style>
-    .tabs { display: flex; gap: .4rem; margin: .6rem 0; flex-wrap: wrap; }
-    .tabs button[aria-selected="true"] { background: var(--accent); color: var(--accent-ink); }
-    .hit { border: 1px solid var(--line); border-radius: 6px; padding: .5rem .7rem; margin: .4rem 0; cursor: pointer; }
-    .hit:hover, .hit.picked { border-color: var(--accent); background: var(--soft); }
-    .hit .meta { font-size: .82rem; color: var(--muted); }
-    .snapshot { border-left: 3px solid var(--accent); padding: .3rem .8rem; margin: .6rem 0; }
-  </style>
+  <link rel="stylesheet" href="/maple.css" />
 </head>
 <body>
 <main>
   <header class="site"><a href="/">Pocket Maple · 口袋公聽</a><a href="https://github.com/mashbean/pocket-maple" rel="noopener">原始碼</a></header>
   <p class="kicker">Written testimony</p>
   <h1>一個法案，一份公開的書面意見檔案</h1>
-  <p class="lede">主辦者選一個議程項目：從立法院搜法律、挑本屆的法案直接帶入（提案人、狀態、案由、進度都是即時資料），或手動輸入公聽會、地方議會的案子。每人留下<strong>立場</strong>（支持／反對／修正）、一句話重點與書面證詞；全部公開存檔，可匯出 tttc.csv 接 Pocket TTTC。形狀來自美國麻州的 MAPLE，資料來自 OpenFun 的立法院 API。</p>
+  <p class="lede">主辦者選一個議程項目：從立法院搜法律、挑本屆的法案直接帶入（提案人、狀態、案由、進度都是即時資料），或手動輸入公聽會、地方議會的案子。每人留下<strong>立場</strong>（支持／反對／修正）、一句話重點與書面證詞；全部公開存檔，可匯出 tttc.csv 接 Pocket TTTC。</p>
 
-  <form id="create" class="card">
-    <label>議程項目</label>
-    <div class="tabs" role="tablist">
-      <button type="button" class="button ghost" role="tab" data-tab="law" aria-selected="true">搜法律 → 挑法案</button>
-      <button type="button" class="button ghost" role="tab" data-tab="no">貼議案編號或網址</button>
-      <button type="button" class="button ghost" role="tab" data-tab="manual">手動輸入（公聽會、地方議會）</button>
+  <form id="create" class="card" novalidate>
+    <h2 class="step"><span class="num">1</span>議程項目</h2>
+    <div class="seg" role="tablist" aria-label="議程來源">
+      <button type="button" role="tab" data-tab="law" aria-selected="true">搜法律，挑法案</button>
+      <button type="button" role="tab" data-tab="no" aria-selected="false">貼議案編號或網址</button>
+      <button type="button" role="tab" data-tab="manual" aria-selected="false">手動輸入</button>
     </div>
-    <div id="tab-law">
-      <div class="toolbar"><input id="law-q" type="search" placeholder="法律名稱或簡稱，例如：核管法" style="max-width:20rem" /><button id="law-search" class="button ghost" type="button">搜尋</button></div>
-      <div id="law-hits"></div>
-      <div id="bill-hits"></div>
-    </div>
-    <div id="tab-no" class="hidden">
-      <input id="bill-no" type="text" placeholder="15 碼議案編號，或 ppg.ly.gov.tw 的網址" />
-      <button id="bill-fetch" class="button ghost" type="button" style="margin-top:.5rem">帶入</button>
-    </div>
-    <div id="tab-manual" class="hidden">
-      <label for="m-name">名稱</label><input id="m-name" type="text" maxlength="200" placeholder="例如：恆春鎮核三延役公聽會" />
-      <div class="grid2">
-        <div><label for="m-proposer">提案／主辦單位</label><input id="m-proposer" type="text" maxlength="120" /></div>
-        <div><label for="m-status">狀態或日期</label><input id="m-status" type="text" maxlength="60" /></div>
+
+    <div id="picker">
+      <div id="tab-law">
+        <div class="searchrow">
+          <input id="law-q" type="search" placeholder="法律名稱，例如：核子反應器設施管制法" autocomplete="off" />
+          <button id="law-search" class="button" type="button">搜尋</button>
+        </div>
+        <p id="law-status" class="status"></p>
+        <div id="law-hits" class="hits"></div>
+        <div id="bill-wrap" class="hidden">
+          <div class="hits-head"><span id="bill-title"></span><label class="mini"><input id="only-open" type="checkbox" checked /> 只看還在審的</label></div>
+          <div id="bill-hits" class="hits"></div>
+        </div>
       </div>
-      <label for="m-laws">相關法律（逗號分隔，選填）</label><input id="m-laws" type="text" />
-      <label for="m-url">資料連結（https，選填）</label><input id="m-url" type="text" />
-      <label for="m-reason">案由（選填）</label><textarea id="m-reason" maxlength="2000"></textarea>
+      <div id="tab-no" class="hidden">
+        <div class="searchrow">
+          <input id="bill-no" type="text" placeholder="15 碼議案編號，或 ppg.ly.gov.tw 議案網址" autocomplete="off" />
+          <button id="bill-fetch" class="button" type="button">帶入</button>
+        </div>
+        <p id="no-status" class="status"></p>
+      </div>
+      <div id="tab-manual" class="hidden">
+        <label for="m-name">名稱</label><input id="m-name" type="text" maxlength="200" placeholder="例如：恆春鎮核三延役公聽會" />
+        <div class="grid2">
+          <div><label for="m-proposer">提案／主辦單位</label><input id="m-proposer" type="text" maxlength="120" /></div>
+          <div><label for="m-status">狀態或日期</label><input id="m-status" type="text" maxlength="60" placeholder="例如：2026-10-01 舉行" /></div>
+        </div>
+        <label for="m-laws">相關法律（逗號分隔，選填）</label><input id="m-laws" type="text" />
+        <label for="m-url">資料連結（https，選填）</label><input id="m-url" type="text" />
+        <label for="m-reason">案由（選填）</label><textarea id="m-reason" maxlength="2000"></textarea>
+      </div>
     </div>
-    <div id="snapshot" class="snapshot hidden"></div>
 
-    <label for="title">公聽案名稱<small>留空就用議程項目名稱。</small></label>
+    <div id="picked" class="picked hidden">
+      <div class="picked-head"><span class="tag ok">已帶入</span><button id="repick" class="linkbtn" type="button">換一個</button></div>
+      <div id="snapshot"></div>
+    </div>
+
+    <h2 class="step"><span class="num">2</span>公聽案設定</h2>
+    <label for="title">公聽案名稱<small>預設用法案名稱；可以改成參與者看得懂的說法。</small></label>
     <input id="title" type="text" maxlength="120" />
-    <label for="description">說明（給參與者看，例如誰會讀這些意見、何時用）</label>
-    <textarea id="description" maxlength="2000"></textarea>
+    <label for="description">說明<small>給參與者看：誰會讀這些意見、什麼時候用。</small></label>
+    <textarea id="description" maxlength="2000" placeholder="例如：委員會審查前，我們會把所有意見整理成摘要送給委員辦公室。"></textarea>
     <div class="grid2">
       <div><label for="deadline">截止日（選填）</label><input id="deadline" type="date" /></div>
-      <div><label class="consent" style="margin-top:2.3rem"><input id="ask-org" type="checkbox" checked /> <span>詢問所屬單位（選填）</span></label></div>
+      <div class="checks">
+        <label class="consent"><input id="ask-org" type="checkbox" checked /> <span>詢問所屬單位（選填欄）</span></label>
+        <label class="consent"><input id="require-summary" type="checkbox" checked /> <span>要求一句話重點</span></label>
+      </div>
     </div>
-    <label class="consent"><input id="require-summary" type="checkbox" checked /> <span>要求一句話重點（進 tttc.csv）</span></label>
+
+    <h2 class="step"><span class="num">3</span>告知</h2>
     <label class="consent"><input id="confirmed" type="checkbox" /> <span>我會告訴參與者：證詞會以他們留的名字公開、本站不驗證身分、以及這些意見會怎麼用。</span></label>
-    <button id="submit" class="button" type="submit">建立</button>
-    <p id="status" class="status" role="status" aria-live="polite"></p>
+    <div class="toolbar"><button id="submit" class="button" type="submit">建立公聽案</button><span id="status" class="status" role="status" aria-live="polite"></span></div>
   </form>
 
   <section id="result" class="card hidden">
     <h2>已建立</h2>
     <p class="links"><strong>留言連結：</strong><a id="testify-link" href="#"></a></p>
     <p class="links"><strong>公開檔案：</strong><a id="archive-link" href="#"></a></p>
-    <p class="links"><strong>主辦者連結（下架、關閉、匯出、刪除）：</strong><a id="host-link" href="#"></a></p>
-    <p class="private">主辦者連結只顯示這一次。</p>
+    <p class="links"><strong>主辦者連結（下架、截止、匯出、刪除）：</strong><a id="host-link" href="#"></a></p>
+    <p class="private">主辦者連結只顯示這一次，請自己收好。</p>
   </section>
 
-  <footer>形狀來自 <a href="https://github.com/codeforboston/maple" rel="noopener">MAPLE</a>（MIT，未用其程式碼）；法案資料來自 <a href="https://ly.govapi.tw" rel="noopener">OpenFun 立法院 API</a>，免 token。本站不驗證身分，證詞旁會標示「未驗證」。MIT 授權。</footer>
+  <footer>形狀來自 <a href="https://github.com/codeforboston/maple" rel="noopener">MAPLE</a>（MIT，未用其程式碼）；法案資料來自 <a href="https://ly.govapi.tw" rel="noopener">OpenFun 立法院 API</a>，免 token，以立法院官方資料為準。本站不驗證身分，證詞旁會標示「未驗證」。MIT 授權。</footer>
 </main>
 <script type="module" src="/app.js"></script>
 </body>

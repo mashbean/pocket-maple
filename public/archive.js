@@ -1,8 +1,12 @@
+import { renderAgenda } from "/agenda.js";
+
 const hearingId = (location.pathname.match(/^\/r\/([a-z0-9]{10})/) || [])[1];
 const el = (id) => document.getElementById(id);
 const LABEL = { support: "支持", oppose: "反對", amend: "修正" };
+const CLAMP = 600;
 let all = [];
 let stance = "";
+let order = "new";
 if (!hearingId) showError("網址不完整。");
 else load();
 
@@ -15,23 +19,15 @@ async function load() {
   document.title = `${hearing.title} · 公開檔案`;
   el("title").textContent = hearing.title;
   el("description").textContent = hearing.description;
-  el("state").textContent = hearing.status === "open" ? `收件中${hearing.deadline ? ` · 截止 ${hearing.deadline}` : ""}` : "已截止";
+  const open = hearing.status === "open";
+  el("state").textContent = open ? `收件中${hearing.deadline ? ` · 截止 ${hearing.deadline}` : ""}` : "已截止";
   el("testify-link").href = `/t/${hearingId}`;
-  const agenda = el("agenda");
-  agenda.replaceChildren();
-  const name = document.createElement("strong");
-  name.textContent = hearing.agenda.name;
-  const meta = document.createElement("div");
-  meta.className = "meta";
-  meta.textContent = [hearing.agenda.proposer, hearing.agenda.status, hearing.agenda.laws.join("、"), hearing.agenda.kind === "bill" ? `議案編號 ${hearing.agenda.billNo}` : ""].filter(Boolean).join(" · ");
-  agenda.append(name, meta);
-  if (hearing.agenda.url) {
-    const a = document.createElement("a");
-    a.href = hearing.agenda.url;
-    a.rel = "noopener";
-    a.textContent = hearing.agenda.kind === "bill" ? "立法院議案資料" : "資料連結";
-    agenda.append(a);
+  el("testify-top").href = `/t/${hearingId}`;
+  if (!open) {
+    el("testify-top").classList.add("hidden");
+    el("testify-link").parentElement.classList.add("hidden");
   }
+  el("agenda").replaceChildren(renderAgenda(hearing.agenda, { withName: hearing.agenda.name !== hearing.title }));
   const total = hearing.testimonies || 0;
   el("stats").replaceChildren(...[[total, "份意見"], [hearing.counts.support, "支持"], [hearing.counts.oppose, "反對"], [hearing.counts.amend, "修正"]].map(([value, label]) => {
     const node = document.createElement("div");
@@ -47,14 +43,18 @@ async function load() {
     const i = document.createElement("i");
     i.className = key;
     i.style.width = total ? `${(hearing.counts[key] / total) * 100}%` : "0";
+    i.title = `${LABEL[key]} ${hearing.counts[key]}`;
     return i;
   }));
   render();
+  if (location.hash) document.querySelector(location.hash)?.scrollIntoView({ block: "center" });
 }
 
 function render() {
   const query = el("search").value.trim().toLowerCase();
-  const list = all.filter((t) => (!stance || t.stance === stance) && (!query || `${t.name} ${t.org} ${t.summary} ${t.text}`.toLowerCase().includes(query)));
+  const list = all
+    .filter((t) => (!stance || t.stance === stance) && (!query || `${t.name} ${t.org} ${t.summary} ${t.text}`.toLowerCase().includes(query)))
+    .sort((a, b) => (order === "new" ? b.id - a.id : a.id - b.id));
   el("list").replaceChildren(...list.map((t) => {
     const box = document.createElement("article");
     box.className = "testimony";
@@ -78,15 +78,28 @@ function render() {
       summary.textContent = t.summary;
       box.append(summary);
     }
-    const pre = document.createElement("pre");
-    pre.textContent = t.text;
-    box.append(pre);
+    const text = document.createElement("div");
+    text.className = "text";
+    const long = t.text.length > CLAMP && !location.hash.endsWith(`-${t.id}`);
+    text.textContent = long ? `${t.text.slice(0, CLAMP)}…` : t.text;
+    box.append(text);
+    if (long) {
+      const more = document.createElement("button");
+      more.type = "button";
+      more.className = "linkbtn more";
+      more.textContent = `展開全文（${t.text.length.toLocaleString("zh-Hant-TW")} 字）`;
+      more.addEventListener("click", () => {
+        text.textContent = t.text;
+        more.remove();
+      });
+      box.append(more);
+    }
     return box;
   }));
   if (list.length === 0) {
     const p = document.createElement("p");
     p.className = "hint";
-    p.textContent = "還沒有符合的意見。";
+    p.textContent = all.length === 0 ? "還沒有人留意見，你可以是第一個。" : "沒有符合的意見。";
     el("list").append(p);
   }
 }
@@ -94,6 +107,13 @@ for (const button of el("filters").querySelectorAll("button")) {
   button.addEventListener("click", () => {
     stance = button.dataset.stance;
     for (const other of el("filters").querySelectorAll("button")) other.setAttribute("aria-pressed", String(other === button));
+    render();
+  });
+}
+for (const button of el("order").querySelectorAll("button")) {
+  button.addEventListener("click", () => {
+    order = button.dataset.order;
+    for (const other of el("order").querySelectorAll("button")) other.setAttribute("aria-pressed", String(other === button));
     render();
   });
 }
