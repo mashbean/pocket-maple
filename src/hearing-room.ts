@@ -1,5 +1,6 @@
 import { DurableObject } from "cloudflare:workers";
 import { csvTable } from "./csv";
+import { cleanBillName } from "./ly";
 import { DEFAULT_MAX_TESTIMONIES, SchemaError, STANCES, type Settings, type Stance, normalizeTestimony } from "./schema";
 
 export type Status = "open" | "closed" | "deleted";
@@ -139,6 +140,11 @@ export class HearingRoom extends DurableObject<Env> {
 
   private toPublic(meta: HearingMeta): PublicHearing {
     const { adminHash: _adminHash, ...rest } = meta;
+    // 早期建立的案子存的是「」＋「，請審議案。」的原始名稱；讀取時一併清理，新舊一致。
+    if (rest.agenda.kind === "bill") {
+      rest.agenda = { ...rest.agenda, name: cleanBillName(rest.agenda.name) };
+      rest.title = cleanBillName(rest.title);
+    }
     const counts = { support: 0, oppose: 0, amend: 0 } as Record<Stance, number>;
     for (const row of this.sql().exec(`SELECT stance, COUNT(*) AS n FROM testimonies WHERE removed = 0 GROUP BY stance`).toArray()) {
       const stance = STANCES.find((item) => item === String(row.stance));
