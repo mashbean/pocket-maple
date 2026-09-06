@@ -28,11 +28,14 @@ describe("ly client", () => {
 
   it("searches laws, lists a law's bills in the current term and snapshots one bill, all token-free", async () => {
     const upstream = mockFetch({
-      "/laws?q=核子&limit=10": { laws: [{ 法律編號: "02711", 名稱: "核子反應器設施管制法", 別名: ["核管法"], 其他名稱: [], 法律狀態: "現行", 最新版本: { 日期: "2025-05-13" } }] },
+      "/laws?q=核子&limit=50": { laws: [{ 法律編號: "02711", 名稱: "核子反應器設施管制法", 別名: ["核管法"], 其他名稱: [], 法律狀態: "現行", 最新版本: { 日期: "2025-05-13" } }, { 法律編號: "04318", 名稱: "總統副總統選舉罷免法", 別名: [], 其他名稱: [], 法律狀態: "現行", 最新版本: { 日期: "2026-08-04" } }] },
+      "/laws?q=核管法&limit=50": { laws: [{ 法律編號: "02711", 名稱: "核子反應器設施管制法", 別名: ["核管法"], 其他名稱: [], 法律狀態: "現行", 最新版本: { 日期: "2025-05-13" } }] },
+      "/bills/202110231920000": { error: false, data: { ...BILL, 議案編號: "202110231920000", 案由: "鑑於《教師待遇條例》施行以來，教師待遇…" } },
       "/bills?法律編號=02711&屆=11&limit=30": { bills: [BILL] },
       "/bills/202110231310000": { error: false, data: BILL },
     });
     expect(await searchLaws("https://ly.test", "核子", upstream)).toEqual([{ code: "02711", name: "核子反應器設施管制法", aliases: ["核管法"], status: "現行", latest: "2025-05-13" }]);
+    expect((await searchLaws("https://ly.test", "核管法", upstream)).map((law) => law.code)).toEqual(["02711"]);
     const bills = await billsForLaw("https://ly.test", "02711", upstream);
     expect(bills[0]).toMatchObject({ billNo: "202110231310000", proposer: "陳菁徽、王育敏、李彥秀 等 4 人", status: "排入院會", laws: ["核子反應器設施管制法"] });
     await expect(billsForLaw("https://ly.test", "12", upstream)).rejects.toThrow(/5 碼/);
@@ -40,6 +43,7 @@ describe("ly client", () => {
     expect(agenda).toMatchObject({ kind: "bill", billNo: "202110231310000", status: "排入院會", reason: "為使核能電廠得於安全審查通過後延長運轉，爰擬具本修正草案。", url: "https://ppg.ly.gov.tw/ppg/bills/202110231310000/details" });
     expect(agenda.progress).toEqual([{ status: "一讀", date: "2026-08-01" }, { status: "排入院會", date: "2026-08-28" }]);
     await expect(fetchBill("https://ly.test", "999999999999999", upstream)).rejects.toThrow(/找不到/);
+    expect((await fetchBill("https://ly.test", "202110231920000", upstream)).reason).toBe("");
   });
 
   it("turns an unreachable Legislative Yuan API into a clean 502 through the Worker", async () => {

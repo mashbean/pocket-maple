@@ -26,15 +26,17 @@ export function extractBillNo(value: string): string {
 export async function searchLaws(origin: string, query: string, upstreamFetch: typeof fetch = fetch): Promise<LawHit[]> {
   const q = cleanLine(query, 60);
   if (!q) return [];
-  const body = await getJson(`${origin}/laws?q=${encodeURIComponent(q)}&limit=10`, upstreamFetch);
+  // 上游的 q 是逐字模糊比對（「核管法」會撈到所有含「法」的法律），所以多抓一些再只留名稱或別名真的含查詢字串的。
+  const body = await getJson(`${origin}/laws?q=${encodeURIComponent(q)}&limit=50`, upstreamFetch);
   const list = Array.isArray(body.laws) ? body.laws : [];
+  const needle = q.toLowerCase();
   return list.filter(isRecord).map((law) => ({
     code: String(law.法律編號 ?? ""),
     name: cleanLine(law.名稱, 120),
     aliases: [...(Array.isArray(law.別名) ? law.別名 : []), ...(Array.isArray(law.其他名稱) ? law.其他名稱 : [])].map((item) => cleanLine(item, 80)).filter(Boolean),
     status: cleanLine(law.法律狀態, 20),
     latest: cleanLine(isRecord(law.最新版本) ? law.最新版本.日期 : "", 20),
-  })).filter((law) => law.code && law.name);
+  })).filter((law) => law.code && law.name && [law.name, ...law.aliases].some((text) => text.toLowerCase().includes(needle))).slice(0, 10);
 }
 
 export async function billsForLaw(origin: string, lawCode: string, upstreamFetch: typeof fetch = fetch, term = CURRENT_TERM): Promise<BillHit[]> {
@@ -52,7 +54,11 @@ export async function fetchBill(origin: string, billNo: string, upstreamFetch: t
   const hit = toBillHit(data);
   const progress = (Array.isArray(data.議案流程) ? data.議案流程 : []).filter(isRecord).map((step) => ({ status: cleanLine(step.狀態, 40), date: cleanLine(Array.isArray(step.日期) ? step.日期[step.日期.length - 1] : step.日期, 20) })).filter((step) => step.status).slice(-12);
   const url = typeof data.url === "string" && data.url.startsWith("https://") ? data.url : `https://ppg.ly.gov.tw/ppg/bills/${billNo}/details`;
-  return { kind: "bill", billNo: hit.billNo, name: hit.name, proposer: hit.proposer, status: hit.status, laws: hit.laws, progress, reason: cleanText(data.案由, 2_000), url, fetchedAt: Date.now() };
+  // 上游偶爾把別的議案的案由掛到這一筆：案由用《》點名的法律沒有一部是這個議案的相關法律時，就不採用。
+  const reason = cleanText(data.案由, 2_000);
+  const named = [...reason.matchAll(/《([^》]{2,40})》/g)].map((match) => match[1] as string);
+  const reasonMatchesLaw = named.length === 0 || hit.laws.length === 0 || named.some((name) => hit.laws.some((law) => law.includes(name) || name.includes(law)));
+  return { kind: "bill", billNo: hit.billNo, name: hit.name, proposer: hit.proposer, status: hit.status, laws: hit.laws, progress, reason: reasonMatchesLaw ? reason : "", url, fetchedAt: Date.now() };
 }
 
 function toBillHit(bill: Record<string, unknown>): BillHit {
