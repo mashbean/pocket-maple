@@ -1,0 +1,42 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  // 品牌名為 Pocket Maple（口袋公聽）；worker 名稱是 Durable Object 資料的錨點，改名等同切到一套空白資料。
+  "name": "pocket-maple",
+  "main": "src/index.ts",
+  "compatibility_date": "2026-08-18",
+  "workers_dev": true,
+  "preview_urls": true,
+  "assets": {
+    "directory": "./public",
+    "binding": "ASSETS",
+    "run_worker_first": ["/api/*", "/t/*", "/r/*", "/h/*"]
+  },
+  "durable_objects": {
+    "bindings": [
+      { "name": "HEARING", "class_name": "HearingRoom" },
+      { "name": "COORDINATOR", "class_name": "Coordinator" }
+    ]
+  },
+  "migrations": [{ "tag": "v1", "new_sqlite_classes": ["HearingRoom", "Coordinator"] }],
+  "vars": {
+    // 每案最多幾份證詞
+    "MAX_TESTIMONIES": "2000",
+    // 立法院即時 API（OpenFun 維護，免 token）
+    "LY_API_ORIGIN": "https://v2.ly.govapi.tw",
+    "BUILD_SHA": ""
+  },
+  "env": {
+    "production": {
+      "name": "pocket-maple",
+      "durable_objects": {
+        "bindings": [
+          { "name": "HEARING", "class_name": "HearingRoom" },
+          { "name": "COORDINATOR", "class_name": "Coordinator" }
+        ]
+      },
+      "vars": { "MAX_TESTIMONIES": "2000", "LY_API_ORIGIN": "https://v2.ly.govapi.tw", "BUILD_SHA": "" },
+      "routes": [{ "pattern": "maple-tw.mashbean.net", "custom_domain": true }]
+    }
+  },
+  "observability": { "enabled": true, "logs": { "head_sampling_rate": 0.1 } }
+}

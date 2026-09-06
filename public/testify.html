@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="zh-Hant-TW">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="robots" content="noindex" />
+  <title>留下意見 · Pocket Maple</title>
+  <link rel="stylesheet" href="/style.css" />
+  <style>
+    .agenda { border-left: 3px solid var(--accent); padding: .3rem .9rem; margin: .8rem 0; }
+    .agenda .meta { font-size: .88rem; color: var(--muted); }
+    .agenda ol { margin: .3rem 0 0 1.1rem; padding: 0; font-size: .85rem; color: var(--muted); }
+    .stances { display: flex; gap: .5rem; flex-wrap: wrap; }
+    .stances label { display: flex; align-items: center; gap: .4rem; border: 1px solid var(--line); border-radius: 6px; padding: .4rem .8rem; cursor: pointer; margin: 0; font-weight: 600; }
+    .stances label:has(input:checked) { border-color: var(--accent); background: var(--soft); }
+  </style>
+</head>
+<body>
+<main>
+  <header class="site"><a href="/">Pocket Maple · 口袋公聽</a><span id="state" class="hint"></span></header>
+  <h1 id="title">載入中…</h1>
+  <p class="lede" id="description"></p>
+  <div class="agenda" id="agenda"></div>
+  <form id="form">
+    <label>你的立場</label>
+    <div class="stances">
+      <label><input type="radio" name="stance" value="support" required /> 支持</label>
+      <label><input type="radio" name="stance" value="oppose" /> 反對</label>
+      <label><input type="radio" name="stance" value="amend" /> 修正</label>
+    </div>
+    <div class="grid2">
+      <div><label for="name">名字或化名<small>會公開；本站不驗證身分。</small></label><input id="name" type="text" maxlength="60" required /></div>
+      <div id="org-wrap"><label for="org">所屬單位（選填）</label><input id="org" type="text" maxlength="120" /></div>
+    </div>
+    <label for="summary">一句話重點</label><input id="summary" type="text" maxlength="200" />
+    <label for="text">書面意見<small>至少 20 字，最多 4,000 字。</small></label><textarea id="text" rows="10" maxlength="4000" required></textarea>
+    <div class="toolbar"><button id="submit" class="button" type="submit">送出</button><button id="withdraw" class="button ghost hidden" type="button">撤回我的意見</button><a id="archive-link" class="button ghost" href="#">看公開檔案</a></div>
+    <p id="status" class="status" role="status" aria-live="polite"></p>
+  </form>
+  <p id="error" class="error hidden"></p>
+  <footer>一台裝置一份意見，截止前可以修改或撤回。證詞以你留的名字公開存檔，標示「未驗證身分」。</footer>
+</main>
+<script type="module" src="/testify.js"></script>
+</body>
+</html>

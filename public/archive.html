@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="zh-Hant-TW">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>公開檔案 · Pocket Maple</title>
+  <link rel="stylesheet" href="/style.css" />
+  <style>
+    .agenda { border-left: 3px solid var(--accent); padding: .3rem .9rem; margin: .8rem 0; }
+    .agenda .meta { font-size: .88rem; color: var(--muted); }
+    .stance-bar { display: flex; height: .8rem; border-radius: 4px; overflow: hidden; background: var(--line); margin: .4rem 0; }
+    .stance-bar i { display: block; height: 100%; }
+    .stance-bar .support { background: var(--accent); }
+    .stance-bar .oppose { background: var(--bad); }
+    .stance-bar .amend { background: var(--fair); }
+    .filters { display: flex; gap: .4rem; flex-wrap: wrap; margin: .6rem 0; }
+    .filters button[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink); }
+    .testimony { border-top: 1px solid var(--line); padding: .9rem 0; }
+    .testimony .head { display: flex; gap: .6rem; align-items: baseline; flex-wrap: wrap; }
+    .testimony .who { font-weight: 700; }
+    .testimony .meta { font-size: .8rem; color: var(--muted); }
+    .testimony .summary { font-weight: 600; margin: .3rem 0; }
+    .testimony pre { white-space: pre-wrap; font: inherit; margin: .3rem 0; }
+    .tag { display: inline-block; font-size: .75rem; padding: .05rem .45rem; border-radius: 3px; color: #fff; }
+    .tag.support { background: var(--accent); }
+    .tag.oppose { background: var(--bad); }
+    .tag.amend { background: var(--fair); }
+  </style>
+</head>
+<body>
+<main>
+  <header class="site"><a href="/">Pocket Maple · 口袋公聽</a><span id="state" class="hint"></span></header>
+  <p class="kicker">公開檔案</p>
+  <h1 id="title">載入中…</h1>
+  <p class="lede" id="description"></p>
+  <div class="agenda" id="agenda"></div>
+  <div class="stats" id="stats"></div>
+  <div class="stance-bar" id="bar"></div>
+  <div class="filters" id="filters">
+    <button type="button" class="button ghost" data-stance="" aria-pressed="true">全部</button>
+    <button type="button" class="button ghost" data-stance="support">支持</button>
+    <button type="button" class="button ghost" data-stance="oppose">反對</button>
+    <button type="button" class="button ghost" data-stance="amend">修正</button>
+    <input id="search" type="search" placeholder="搜尋內容或名字" style="max-width:16rem" />
+  </div>
+  <div id="list"></div>
+  <p class="hint"><a id="testify-link" href="#">我也要留意見</a></p>
+  <p id="error" class="error hidden"></p>
+  <footer>證詞以留言者自填的名字公開，本站不驗證身分。法案資料來自 OpenFun 立法院 API 的快照，以立法院官方資料為準。</footer>
+</main>
+<script type="module" src="/archive.js"></script>
+</body>
+</html>

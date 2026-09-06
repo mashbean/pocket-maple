@@ -1,0 +1,35 @@
+{
+  "name": "@mashbean/pocket-maple",
+  "version": "0.1.0",
+  "description": "Pocket Maple (口袋公聽): written testimony on a bill or hearing item with a public archive, on a single Cloudflare Worker with Durable Objects — Taiwan bill data pulled from the token-free ly.govapi.tw API; stance + testimony per person, public archive, tttc.csv; no accounts, no AI, one-click deploy",
+  "type": "module",
+  "license": "MIT",
+  "repository": { "type": "git", "url": "git+https://github.com/mashbean/pocket-maple.git" },
+  "bugs": "https://github.com/mashbean/pocket-maple/issues",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "deploy:dry": "wrangler deploy --dry-run",
+    "deploy:production": "wrangler deploy --env production",
+    "deploy:dry:production": "wrangler deploy --dry-run --env production",
+    "typecheck": "tsc --noEmit",
+    "types": "wrangler types",
+    "test": "vitest run",
+    "smoke": "node scripts/smoke.mjs",
+    "check": "npm run typecheck && npm test && npm run deploy:dry && npm run deploy:dry:production"
+  },
+  "devDependencies": {
+    "@cloudflare/vitest-pool-workers": "^0.21.3",
+    "typescript": "^5.9.3",
+    "vitest": "^4.1.10",
+    "wrangler": "^4.123.0"
+  },
+  "engines": { "node": ">=22.13" },
+  "cloudflare": {
+    "bindings": {
+      "ASSETS": { "description": "Static create, testify, archive and host pages." },
+      "HEARING": { "description": "One SQLite Durable Object per hearing item: the agenda snapshot and every testimony." },
+      "COORDINATOR": { "description": "Durable Object holding the deployment-wide creation rate limit." }
+    }
+  }
+}

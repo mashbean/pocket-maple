@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="zh-Hant-TW">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="robots" content="noindex" />
+  <title>主辦者 · Pocket Maple</title>
+  <link rel="stylesheet" href="/style.css" />
+</head>
+<body>
+<main>
+  <header class="site"><a href="/">Pocket Maple · 口袋公聽</a><span id="state" class="hint"></span></header>
+  <p class="kicker">主辦者</p>
+  <h1 id="title">載入中…</h1>
+  <p class="links">留言連結：<a id="testify-link" href="#"></a><br />公開檔案：<a id="archive-link" href="#"></a></p>
+  <div class="stats" id="stats"></div>
+  <div class="toolbar"><button id="toggle" class="button ghost" type="button">截止</button><button id="refresh" class="button ghost" type="button">重新整理</button></div>
+  <section class="card">
+    <h2>匯出</h2>
+    <div class="toolbar">
+      <a id="dl-testimonies" class="button" href="#">testimonies.csv</a>
+      <a id="dl-tttc" class="button ghost" href="#">tttc.csv（一句話重點）</a>
+      <a id="dl-json" class="button ghost" href="#">archive.json</a>
+    </div>
+    <p class="hint">tttc.csv 可貼進 <a href="https://ttt-city.mashbean.net" rel="noopener">Pocket TTTC</a> 做主題樹，或送 Pocket Reply 逐一回覆。</p>
+  </section>
+  <section class="card"><h2>下架意見</h2><div id="moderate"></div></section>
+  <section class="card"><h2>刪除</h2><button id="delete" class="button ghost" type="button">刪除整個公聽案</button><p id="admin-status" class="status"></p></section>
+  <p id="error" class="error hidden"></p>
+</main>
+<script type="module" src="/host.js"></script>
+</body>
+</html>
