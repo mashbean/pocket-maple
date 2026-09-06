@@ -139,6 +139,9 @@ function clearPick() {
 // ---- 建立 ----
 el("create").addEventListener("submit", async (event) => {
   event.preventDefault();
+  // 在搜尋框或議案編號框按 Enter 會觸發表單送出：改成搜尋／帶入，而不是建立。
+  if (document.activeElement === el("law-q")) return searchLaws();
+  if (document.activeElement === el("bill-no")) return fetchBill(el("bill-no").value, el("no-status"));
   const status = el("status");
   if (tab !== "manual" && !billNo) {
     status.textContent = "先帶入一個法案，或改用手動輸入。";
